@@ -1,0 +1,47 @@
+# =========================
+# Variables de entorno
+# =========================
+.env
+.env.*
+
+# =========================
+# Dependencias
+# =========================
+vendor/
+
+# =========================
+# Archivos sensibles de config
+# (si algún día agregas locales)
+# =========================
+config/*.local.php
+config/*.secret.php
+
+# =========================
+# Logs y debug
+# =========================
+*.log
+debug_response.txt
+
+# =========================
+# Cache / temporales
+# =========================
+cache/
+tmp/
+
+# =========================
+# Archivos del sistema
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Editor / IDE
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# Node (por si luego usas bundler)
+# =========================
+node_modules/
+dist/

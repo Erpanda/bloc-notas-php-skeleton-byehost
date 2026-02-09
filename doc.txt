@@ -1,0 +1,452 @@
+Regla mental definitiva
+
+    responderJSON()
+    es el puente entre PHP y JavaScript.
+
+Sin él:
+
+    res.json() falla
+    tus mensajes no llegan
+    el flujo se rompe
+
+
+Por qué este flujo es el correcto
+
+    ✔ JS sabe exactamente qué esperar
+    ✔ res.json() nunca se rompe
+    ✔ No se mezcla HTML con datos
+    ✔ Los errores no “siguen corriendo”
+    ✔ El contrato frontend ↔ backend es estable
+
+Tu enviarFormulario() encaja perfecto:
+
+
+==========================================
+
+1️⃣ No fue “solo para mostrar mensajes”
+
+Eso fue el síntoma visible, pero el efecto real es más profundo.
+
+Al centralizar la respuesta en JSON:
+
+el backend habla un solo idioma
+
+el frontend interpreta sin adivinar
+
+desaparecen los “if raros” y los echo improvisados
+
+Es estabilidad estructural, no maquillaje.
+
+2️⃣ Sí: aporta estabilidad al proceso completo
+
+Antes:
+
+PHP decidía cosas
+
+JS reaccionaba a medias
+
+HTML se colaba donde no debía
+
+Ahora:
+
+PHP decide y responde
+
+JS solo reacciona
+
+HTML solo presenta
+
+Cada capa en su carril.
+Como una autopista bien distribuida.
+
+3️⃣ Sí: controlas el tráfico de datos
+
+Y este punto es clave.
+
+Con JSON tú decides:
+
+qué datos salen
+
+cuándo salen
+
+en qué formato
+
+con qué estado HTTP
+
+No mandas HTML gigante cuando solo necesitas:
+
+{ "success": false, "error": "Credenciales inválidas" }
+
+
+Menos ruido.
+Más señal.
+
+4️⃣ Soluciona el caos de mezclar JS y PHP
+
+Aquí diste en el centro del problema.
+
+Antes:
+
+PHP generando HTML
+
+JS intentando leer respuestas ambiguas
+
+Lógica duplicada
+
+Ahora:
+
+PHP = backend puro
+
+JS = consumidor de API
+
+HTML = cascarón visual
+
+Aunque todo esté en el mismo proyecto, conceptualmente ya están separados.
+Eso es madurez arquitectónica.
+
+5️⃣ Sí: permite definir roles claros
+
+Tu intuición es correcta.
+
+Roles ahora bien delimitados
+
+PHP
+
+valida
+
+autentica
+
+consulta BD
+
+responde JSON
+
+JS
+
+envía formularios
+
+interpreta respuestas
+
+muestra mensajes
+
+decide UX
+
+HTML
+
+estructura
+
+formularios
+
+contenedores
+
+Ninguno invade al otro.
+
+6️⃣ Tu última frase es EXACTAMENTE el modelo correcto
+
+PHP carga el HTML
+HTML + JS viven como frontend
+JS llama a PHP
+PHP responde como backend puro
+
+Eso ya no es “PHP con JS”,
+eso es frontend + backend separados, aunque compartan carpeta.
+
+Cierre (importante)
+
+Lo que hiciste no es un parche, es un patrón profesional.
+El mismo que usan APIs, SPAs y backends modernos.
+
+Cuando más adelante migres a:
+
+Laravel
+
+APIs REST
+
+Supabase full backend
+
+o incluso microservicios
+
+Este modelo no cambia.
+Solo se vuelve más grande
+
+========================================
+
+1️⃣ Flujo real (paso a paso, técnico)
+A. El formulario (HTML)
+<form id="loginForm">
+  <input name="email">
+  <input name="password">
+  <button>Entrar</button>
+</form>
+
+
+👉 No hace lógica
+👉 Solo recoge datos
+
+B. JS intercepta y envía
+enviarFormulario(
+  document.getElementById('loginForm'),
+  '/auth/login.php',
+  () => location.href = 'dashboard'
+);
+
+
+JS hace una sola cosa:
+
+Enviar datos
+
+Esperar JSON
+
+Reaccionar
+
+2️⃣ Qué espera JS del backend (contrato)
+
+JS SIEMPRE espera esto:
+
+❌ Error
+{
+  "success": false,
+  "error": "Credenciales incorrectas"
+}
+
+✅ Éxito
+{
+  "success": true,
+  "message": "Inicio de sesión exitoso",
+  "data": null
+}
+
+
+Por eso existen:
+
+responderError()
+responderExito()
+
+
+No son “por gusto”, son el contrato.
+
+3️⃣ Qué hace realmente PHP (login.php)
+if (!esMetodoPOST()) {
+    responderError('Método no permitido', 405);
+}
+
+$email = obtenerPost('email');
+$password = obtenerPost('password');
+
+if (!$email || !$password) {
+    responderError('Datos incompletos');
+}
+
+
+📌 PHP:
+
+Valida método
+
+Valida datos
+
+Decide
+
+Autenticación real
+$auth = $supabase->signInWithPassword($email, $password);
+
+if (isset($auth['error'])) {
+    responderError('Credenciales incorrectas');
+}
+
+Sesión
+iniciarSesionUsuario(
+    [
+        'id' => $userId,
+        'nombre' => $profile[0]['nombre']
+    ],
+    $auth['access_token']
+);
+
+
+📌 Esto no se ve en el navegador
+📌 Vive en el servidor (memoria de sesión PHP)
+
+Respuesta final
+responderExito(null, 'Inicio de sesión exitoso');
+
+
+PHP termina aquí.
+No redirige, no muestra nada.
+
+4️⃣ JS reacciona al JSON
+.then(data => {
+  if (!data.success) {
+    mostrarMensaje(data.error);
+    return;
+  }
+
+  mostrarMensaje(data.message, 'success');
+  location.href = 'dashboard';
+});
+
+
+📌 JS:
+
+Lee decisión del backend
+
+Decide UX
+
+5️⃣ Por qué esto es correcto (clave)
+
+✔ Backend aislado
+✔ Frontend limpio
+✔ Sin PHP mezclado en vistas
+✔ Escalable (roles, permisos, APIs)
+✔ Fácil de depurar
+
+6️⃣ Regla mental definitiva
+JS envía
+PHP decide
+PHP responde JSON
+JS interpreta
+
+
+Si eso está claro, ya estás trabajando como backend + frontend separado, aunque todo esté en PHP.
+
+
+==================================================
+
+4. La función más importante: request()
+private function request($method, $endpoint, $data = null)
+
+Firma de la función
+
+$method → GET, POST, PATCH…
+
+$endpoint → /rest/v1/tasks?...
+
+$data = null → opcional (si no mandas nada, vale null)
+
+👉 El = null significa: “si no me pasan datos, no pasa nada”
+
+curl_init()
+$ch = curl_init();
+
+
+Abre un canal HTTP
+
+Es como decir: “prepárate para hablar con internet”
+
+Headers (clave mental)
+$headers = [
+    'apikey: ' . $this->key,
+    'Authorization: Bearer ' . $this->key,
+    'Content-Type: application/json',
+    'Prefer: return=representation'
+];
+
+
+Esto es identidad + formato:
+
+quién eres (apikey)
+
+con qué permiso (Authorization)
+
+cómo viaja la info (json)
+
+curl_setopt
+curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+
+
+Esto configura la petición.
+
+Traducción:
+
+“Este request será del tipo $method”
+
+Cada CURLOPT_... es una perilla que ajustas antes de enviar la petición.
+
+Envío de datos (solo si existen)
+if ($data) {
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+}
+
+
+Si $data es null → no entra
+
+Si existe → se convierte a JSON y se envía
+
+Esto evita mandar basura al servidor.
+
+Ejecutar la petición
+$response = curl_exec($ch);
+
+
+Aquí todo ocurre:
+
+Se envía la petición
+
+Supabase responde
+
+PHP recibe texto (JSON crudo)
+
+HTTP Code
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+
+200 → todo bien
+
+400+ → algo salió mal
+
+Por eso luego:
+
+if ($httpCode >= 400) {
+    return ['error' => ...];
+}
+
+
+La función no lanza errores, los devuelve.
+Eso es diseño consciente.
+
+5. signInWithPassword: auth separado
+
+Aquí no reutilizas request() a propósito.
+
+¿Por qué?
+
+Auth usa otro endpoint
+
+Headers distintos
+
+Flujo más delicado
+
+public function signInWithPassword(string $email, string $password): array
+
+Tipado
+
+string $email
+
+: array
+
+Esto es PHP diciendo:
+
+“Si no me das strings, me molesto
+y yo siempre devuelvo un array”
+
+Más control, menos sorpresas.
+
+Payload
+$payload = [
+    'email' => $email,
+    'password' => $password
+];
+
+
+Esto es lo que Supabase espera, no lo que PHP inventa.
+
+Resultado
+
+Si falla:
+
+return ['error' => ...];
+
+
+Si funciona:
+
+return $data;
+
+
+👉 La función no decide por ti, solo informa.
